@@ -1,0 +1,27 @@
+{
+  "name": "facebook-group-scraper",
+  "version": "1.0.0",
+  "description": "Web app for scraping Facebook group posts using Puppeteer and Express",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "facebook",
+    "scraper",
+    "puppeteer",
+    "express"
+  ],
+  "author": "Harshit Sharma",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "puppeteer": "^24.25.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

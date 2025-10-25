@@ -1,0 +1,43 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Puppeteer Chromium cache (big!)
+.cache/
+tmp/
+*.log
+*.pid
+
+# Puppeteer user data
+user_data/
+chrome-profile/
+fb_cookies.json  
+
+# Build artifacts
+dist/
+build/
+*.csv
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor configs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Render deployment files (auto-generated)
+.render-build/
+
+data

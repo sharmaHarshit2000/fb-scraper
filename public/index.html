@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Facebook Group Scraper</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="favicon.png" />
+  </head>
+
+  <body>
+    <div class="container">
+      <header>
+        <h1>Facebook Group Scraper</h1>
+        <p class="subtitle">Extract phone numbers from Facebook group posts</p>
+      </header>
+
+      <main>
+        <form id="scrapeForm" class="card">
+          <label for="groupUrl">Group URL</label>
+          <input
+            id="groupUrl"
+            type="text"
+            placeholder="https://www.facebook.com/groups/..."
+            required
+          />
+
+          <label for="scrollLimit">Scroll Limit</label>
+          <input id="scrollLimit" type="number" min="1" max="500" value="50" />
+
+          <label for="cookies">Cookies (optional JSON)</label>
+          <textarea
+            id="cookies"
+            placeholder='[{"name":"c_user","value":"..."}, {"name":"xs","value":"..."}]'
+            rows="4"
+          ></textarea>
+
+          <div class="row">
+            <button id="startBtn" type="submit" class="btn primary">
+              Start
+            </button>
+            <button id="cancelBtn" type="button" class="btn danger" disabled>
+              Cancel
+            </button>
+          </div>
+        </form>
+
+        <div id="status" class="status idle">Idle — ready to start</div>
+
+        <div class="log-container">
+          <h3>Live Logs</h3>
+          <pre id="log" class="log"></pre>
+        </div>
+      </main>
+
+      <footer>
+        <p>Powered by Puppeteer & Node.js</p>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
