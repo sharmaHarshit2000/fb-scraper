@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
 
 const isRender = !!process.env.RENDER;
 
+// Launch Puppeteer browser
 async function launchBrowser() {
   const options = {
     headless: true,
@@ -13,13 +14,11 @@ async function launchBrowser() {
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
     ],
+    executablePath: isRender
+      ? process.env.CHROME_PATH || "/usr/bin/chromium-browser"
+      : undefined, // Puppeteer uses bundled Chromium locally
   };
 
-  if (isRender) {
-    // Use Render's system Chromium
-    options.executablePath = process.env.CHROME_PATH || "/usr/bin/chromium";
-  }
-  // Locally, Puppeteer uses its bundled Chromium automatically
   return await puppeteer.launch(options);
 }
 
@@ -103,6 +102,7 @@ export async function scrapeFacebookGroup(
     console.log(msg);
     progressCallback({ type: "log", msg });
   };
+
   const progress = (i, total, foundPosts, foundNumbers) =>
     progressCallback({ type: "progress", i, total, foundPosts, foundNumbers });
 
