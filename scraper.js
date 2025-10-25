@@ -6,12 +6,24 @@ import puppeteer from "puppeteer"; // <-- Use puppeteer, not puppeteer-core
 const isRender = !!process.env.RENDER;
 
 // Launch Puppeteer browser
+import fs from "fs";
+
 async function launchBrowser() {
+  const isRender = !!process.env.RENDER;
+
   const options = {
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-    // executablePath removed — Puppeteer will use its bundled Chromium
   };
+
+  // Use Render's system Chromium if available
+  const renderChromium = "/usr/bin/chromium-browser";
+  if (isRender && fs.existsSync(renderChromium)) {
+    options.executablePath = renderChromium;
+    console.log("Using Render system Chromium:", renderChromium);
+  } else {
+    console.log("Using Puppeteer's bundled Chromium.");
+  }
 
   return await puppeteer.launch(options);
 }
