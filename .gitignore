@@ -4,11 +4,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment files
-.env
-.env.local
-.env.production
-.env.development
+
 
 # Puppeteer Chromium cache (big!)
 .cache/

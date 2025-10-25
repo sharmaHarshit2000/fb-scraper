@@ -2,12 +2,19 @@ import express from "express";
 import cors from "cors";
 import { EventEmitter } from "events";
 import { scrapeFacebookGroup } from "./scraper.js";
+import dotenv from "dotenv";
+
+// Load environment variables based on NODE_ENV
+dotenv.config({
+  path: process.env.NODE_ENV === "production" ? ".env.production" : ".env",
+});
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
 
+// Map to store ongoing jobs in memory
 const jobs = new Map();
 
 // Log all incoming requests
@@ -31,13 +38,12 @@ app.post("/scrape", async (req, res) => {
     // Send jobId immediately so frontend can subscribe to updates
     res.json({ jobId });
 
-    // Run the scraper in background
+    // Run the scraper in the background
     (async () => {
       try {
         console.log(`Starting scrape job ${jobId}: ${groupUrl}`);
 
-        const progressCallback = (evt) =>
-          emitter.emit(evt.type || "progress", evt);
+        const progressCallback = (evt) => emitter.emit(evt.type || "progress", evt);
 
         const { csv, fileName } = await scrapeFacebookGroup(
           groupUrl,
@@ -48,7 +54,7 @@ app.post("/scrape", async (req, res) => {
 
         const job = jobs.get(jobId);
         if (job) {
-          job.data = csv; // store CSV data in memory
+          job.data = csv; // store CSV in memory
           job.fileName = fileName;
           job.status = "done";
         }
@@ -76,7 +82,7 @@ app.post("/scrape", async (req, res) => {
   }
 });
 
-// Server-Sent Events (SSE) endpoint for live job updates
+// SSE endpoint for live job updates
 app.get("/events/:jobId", (req, res) => {
   const { jobId } = req.params;
   const job = jobs.get(jobId);
@@ -118,7 +124,7 @@ app.get("/events/:jobId", (req, res) => {
   });
 });
 
-// Endpoint to download the generated CSV file from memory
+// Download CSV from memory
 app.get("/download/:jobId", (req, res) => {
   const { jobId } = req.params;
   const job = jobs.get(jobId);
@@ -130,14 +136,14 @@ app.get("/download/:jobId", (req, res) => {
   res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
   res.send(job.data);
 
-  // Clean up memory after sending
+  // Clean up memory after 1 min
   setTimeout(() => {
     jobs.delete(jobId);
     console.log(`Cleaned memory for job ${jobId}`);
   }, 60_000);
 });
 
-// Cancel an active job
+// Cancel active job
 app.post("/cancel/:jobId", (req, res) => {
   const { jobId } = req.params;
   const job = jobs.get(jobId);
@@ -149,7 +155,7 @@ app.post("/cancel/:jobId", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Access the app at: http://localhost:${PORT}`);
   console.log("Do NOT open index.html directly or use Live Server!");

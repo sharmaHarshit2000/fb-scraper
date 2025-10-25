@@ -1,4 +1,27 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import puppeteer from "puppeteer";
+
+const isRender = !!process.env.RENDER;
+
+async function launchBrowser() {
+  const options = {
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+    ],
+  };
+
+  if (isRender) {
+    // Use Render's system Chromium
+    options.executablePath = process.env.CHROME_PATH || "/usr/bin/chromium";
+  }
+  // Locally, Puppeteer uses its bundled Chromium automatically
+  return await puppeteer.launch(options);
+}
 
 // Delay helper
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -84,16 +107,7 @@ export async function scrapeFacebookGroup(
     progressCallback({ type: "progress", i, total, foundPosts, foundNumbers });
 
   log("Launching Puppeteer...");
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--window-size=1280,900",
-    ],
-  });
+  const browser = await launchBrowser();
 
   try {
     const page = await browser.newPage();
@@ -103,11 +117,9 @@ export async function scrapeFacebookGroup(
     if (COOKIES.length) {
       log(`Applying ${COOKIES.length} cookies...`);
 
-      // Navigate once before applying cookies
       await page.goto("https://www.facebook.com", {
         waitUntil: "domcontentloaded",
       });
-
       const context = page.browserContext();
 
       for (const c of COOKIES) {
@@ -120,7 +132,7 @@ export async function scrapeFacebookGroup(
       }
       log("Cookies applied successfully.");
     }
-    // Navigate to the Facebook group
+
     log(`Opening group: ${GROUP_URL}`);
     await safeGoto(page, GROUP_URL);
     await delay(3000);
@@ -147,7 +159,6 @@ export async function scrapeFacebookGroup(
         return nodes.map((node) => {
           const text = node.innerText || "";
 
-          // Try to find the username
           let user = "";
           const selectors = [
             'h3 a[role="link"] span',
@@ -173,7 +184,6 @@ export async function scrapeFacebookGroup(
             }
           }
 
-          // Fallback if username not found
           if (!user) {
             const txt = node.innerText || "";
             const line = txt
@@ -181,24 +191,18 @@ export async function scrapeFacebookGroup(
               .find((l) => /\b(h|d|m|·)\b/i.test(l) && l.length < 80);
             if (line) {
               const parts = line.split("·");
-              if (parts[0] && parts[0].trim().length > 2) {
+              if (parts[0] && parts[0].trim().length > 2)
                 user = parts[0].trim();
-              }
             }
           }
 
           user =
             user.replace(/\s*\(admin\)|Group|Page/gi, "").trim() || "Unknown";
 
-          return {
-            id: text.slice(0, 200),
-            user,
-            text,
-          };
+          return { id: text.slice(0, 200), user, text };
         });
       });
 
-      // Process each post and collect phone numbers
       for (const post of posts) {
         if (seenPosts.has(post.id)) continue;
         seenPosts.add(post.id);
@@ -222,14 +226,12 @@ export async function scrapeFacebookGroup(
         `Scroll ${i}/${SCROLL_LIMIT} — ${results.length} posts, ${totalPhones} total numbers.`
       );
 
-      // Stop early if enough numbers collected
       if (totalPhones >= 800) {
         log("Enough numbers found, stopping early.");
         break;
       }
     }
 
-    // Build CSV in memory
     const csv =
       "postUser,postPhones\n" +
       results
