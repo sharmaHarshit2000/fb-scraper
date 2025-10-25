@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import puppeteer from "puppeteer-core";
+import puppeteer from "puppeteer"; // <-- Use puppeteer, not puppeteer-core
 
 const isRender = !!process.env.RENDER;
 
@@ -9,14 +9,8 @@ const isRender = !!process.env.RENDER;
 async function launchBrowser() {
   const options = {
     headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-    ],
-    executablePath: isRender
-      ? process.env.CHROME_PATH || "/usr/bin/chromium-browser"
-      : undefined, // Puppeteer uses bundled Chromium locally
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+    // executablePath removed — Puppeteer will use its bundled Chromium
   };
 
   return await puppeteer.launch(options);
